@@ -63,6 +63,12 @@ function findRoomByClient(id) {
     return -1;
 }
 
+function allReady(roomNumber) {
+    let index = getRoomIndexByNumber(roomNumber);
+
+    return rooms[index].clients.length === rooms[index].readyClients.length;
+}
+
 socket = io(app.listen(process.env.PORT || 8080, function () {
     console.log("Server running at port " + this.address().port);
 }));
@@ -103,8 +109,14 @@ socket.on("connection", function (client) {
 
     client.on("ready", function() {
         let index = getRoomIndexByNumber(findRoomByClient(client.id));
+        if(index === -1) {
+            return;
+        }
         rooms[index].readyClients.push(client.id);
-        socket.to(rooms[index].hostId).emit("client_status", {clients: rooms[index].clients, readyClients: rooms[index].readyClients});
+        if(allReady(findRoomByClient(client.id))) {
+            socket.to(rooms[index].hostId).emit("all_ready"); 
+        }
+        //socket.to(rooms[index].hostId).emit("client_status", {clients: rooms[index].clients, readyClients: rooms[index].readyClients});
     });
 
     // HOST EVENTS
