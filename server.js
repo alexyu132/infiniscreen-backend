@@ -50,6 +50,19 @@ function getRoomIndexByNumber(number) {
     return -1;
 }
 
+function allReady(roomNumber) {
+    let room = rooms[getRoomIndexByNumber(roomNumber)];
+
+
+    for (let i = 0; i < room.clients.length; i++) {
+        if (room.clients[i].ready === false) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 socket = io(app.listen(process.env.PORT || 8080, function () {
     console.log("Server running at port " + this.address().port);
 }));
@@ -84,7 +97,7 @@ socket.on("connection", function (client) {
             rooms[index].clients.push({id: client.id, ready: false});
 
             socket.to(rooms[index].hostId).emit("client_join", name);
-            console.log("Client " + client.id + " joined room " + roomNumber);
+            console.log("Client " + name + " joined room " + roomNumber);
         }
     });
 
@@ -92,9 +105,10 @@ socket.on("connection", function (client) {
         
         if(getRoomByHost(client.id) !== null) {
 
-        }
-
-        for(let i = 0; i < rooms.length; i++) {
+        } else {
+            for(let i = 0; i < rooms.length; i++) {
+                
+            }
         }
     });
 
