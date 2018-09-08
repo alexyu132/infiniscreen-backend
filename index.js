@@ -22,8 +22,7 @@ function initRoom(client) {
   
     rooms.push({
       roomNumber: roomNumber,
-      hostId: client.id,
-      clients: []
+      hostId: client.id
     });
   
     console.log("Creating room with host " + client.id + " and room number " + roomNumber);
@@ -67,17 +66,20 @@ function initRoom(client) {
 
             let index = getRoomIndexByNumber(roomNumber);
             rooms.splice(index, 1);
+
+            console.log("Room " + roomNumber + "removed.");
         }
        
     });
 
     // CLIENT EVENTS
 
-    client.on("client_join", function(roomNumber) {
+    client.on("client_join", function(roomNumber, name) {
         let index = getRoomIndexByNumber(roomNumber);
         if(index > -1) {
-            rooms[index].clients.push(client.id);
+            // Join the room if it exists
             client.join(String(roomNumber));
+            socket.to(rooms[index].hostId).emit("client_join", name);
         }
     });
 
