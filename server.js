@@ -23,7 +23,8 @@ function initRoom(client) {
 
     rooms.push({
         roomNumber: roomNumber,
-        hostId: client.id
+        hostId: client.id,
+        clients: []
     });
 
     console.log("Creating room with host " + client.id + " and room number " + roomNumber);
@@ -80,7 +81,20 @@ socket.on("connection", function (client) {
         if (index > -1) {
             // Join the room if it exists
             client.join(String(roomNumber));
+            rooms[index].clients.push({id: client.id, ready: false});
+
             socket.to(rooms[index].hostId).emit("client_join", name);
+            console.log("Client " + client.id + " joined room " + roomNumber);
+        }
+    });
+
+    client.on("ready", function() {
+        
+        if(getRoomByHost(client.id) !== null) {
+
+        }
+
+        for(let i = 0; i < rooms.length; i++) {
         }
     });
 
@@ -114,4 +128,5 @@ socket.on("connection", function (client) {
             });
         }
     });
+    
 });
