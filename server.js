@@ -99,7 +99,7 @@ socket.on("connection", function (client) {
         }
     });
 
-    client.on("play", function (timestamp) {
+    client.on("play", function () {
         let roomNumber = getRoomByHost(client.id);
         if (roomNumber !== null) {
             socket.to(String(roomNumber)).emit("play");
