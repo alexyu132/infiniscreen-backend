@@ -24,7 +24,8 @@ function initRoom(client) {
     rooms.push({
         roomNumber: roomNumber,
         hostId: client.id,
-        clients: []
+        clients: [],
+        readyClients: []
     });
 
     console.log("Creating room with host " + client.id + " and room number " + roomNumber);
@@ -50,17 +51,16 @@ function getRoomIndexByNumber(number) {
     return -1;
 }
 
-function allReady(roomNumber) {
-    let room = rooms[getRoomIndexByNumber(roomNumber)];
-
-
-    for (let i = 0; i < room.clients.length; i++) {
-        if (room.clients[i].ready === false) {
-            return false;
+function findRoomByClient(id) {
+    for (let i = 0; i < rooms.length; i++) {
+        for(let j = 0; j < rooms[i].clients.length; j++) {
+            if(rooms[i].clients[j].id === id) {
+                return i;
+            }
         }
     }
 
-    return true;
+    return -1;
 }
 
 socket = io(app.listen(process.env.PORT || 8080, function () {
@@ -94,7 +94,7 @@ socket.on("connection", function (client) {
         if (index > -1) {
             // Join the room if it exists
             client.join(String(roomNumber));
-            rooms[index].clients.push({id: client.id, ready: false});
+            rooms[index].clients.push({id: client.id, name: name});
 
             socket.to(rooms[index].hostId).emit("client_join", name);
             console.log("Client " + name + " joined room " + roomNumber);
@@ -102,14 +102,9 @@ socket.on("connection", function (client) {
     });
 
     client.on("ready", function() {
-        
-        if(getRoomByHost(client.id) !== null) {
-
-        } else {
-            for(let i = 0; i < rooms.length; i++) {
-                
-            }
-        }
+        let index = getRoomIndexByNumber(findRoomByClient(client.id));
+        rooms[index].readyClients.push(client.id);
+        socket.to(rooms[index].hostId).emit("client_status", {clients: rooms[index].clients, readyClients: rooms[index].readyClients});
     });
 
     // HOST EVENTS
@@ -141,6 +136,10 @@ socket.on("connection", function (client) {
                 socket.to(String(roomNumber)).emit("video_url", { "url": info.formats[0].url });
             });
         }
+    });
+
+    client.on("registration_complete", function() {
+        socket.to(rooms[index].hostId).emit("clients", {clients: rooms[index].clients});
     });
     
 });
