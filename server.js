@@ -124,7 +124,7 @@ socket.on("connection", function (client) {
         for(let i = 0; i < rooms[index].clients.length; i++) {
             if(rooms[index].clients[i].id === client.id) {
                 rooms[index].clients[i].ready = true;
-                console.log("Client " + clients[i].name + " is ready.");
+                console.log("Client " + rooms[index].clients[i].name + " is ready.");
                 break;
             }
         }
