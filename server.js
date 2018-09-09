@@ -146,7 +146,7 @@ socket.on("connection", function (client) {
     client.on("pause", function (timestamp) {
         let roomNumber = getRoomNumberByHostId(client.id);
         if (roomNumber !== null) {
-            socket.to(String(roomNumber)).emit("pause", { "timestamp": timestamp });
+            socket.to(String(roomNumber)).emit("pause", timestamp);
         }
 
         console.log("Pause requested for room " + roomNumber);
@@ -165,7 +165,7 @@ socket.on("connection", function (client) {
         let roomNumber = getRoomNumberByHostId(client.id);
         if (roomNumber !== null) {
             ytdl.getInfo(url, function (err, info) {
-                socket.to(String(roomNumber)).emit("video_url", { "url": info.formats[0].url });
+                socket.to(String(roomNumber)).emit("video_url", info.formats[0].url);
             });
         }
 
@@ -184,8 +184,8 @@ socket.on("connection", function (client) {
     client.on("positions", function(positionInfo) {
         let rows = positionInfo.rows, 
             cols = positionInfo.cols,
-            width = 1 / cols,
-            height = 1 / rows;
+            width = 1.0 / cols,
+            height = 1.0 / rows;
         
         for(let i = 0; i < positionInfo.device_positions.length; i++) {
             let originX = positionInfo.device_positions[i].col * width,
