@@ -161,7 +161,7 @@ socket.on("connection", function (client) {
         console.log("Play requested for room " + roomNumber);
     });
 
-    client.on("video_url", function (url) {
+    client.on("video_url_source", function (url) {
         let roomNumber = getRoomNumberByHostId(client.id);
         if (roomNumber !== null) {
             ytdl.getInfo(url, function (err, info) {
