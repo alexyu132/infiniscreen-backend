@@ -143,7 +143,7 @@ socket.on("connection", function (client) {
         client.emit("code_assignment", roomNumber);
     });
 
-    client.on("pause", function (timestamp) {
+    client.on("pause_command", function (timestamp) {
         let roomNumber = getRoomNumberByHostId(client.id);
         if (roomNumber !== null) {
             socket.to(String(roomNumber)).emit("pause", timestamp);
@@ -152,7 +152,7 @@ socket.on("connection", function (client) {
         console.log("Pause requested for room " + roomNumber);
     });
 
-    client.on("play", function () {
+    client.on("play_command", function () {
         let roomNumber = getRoomNumberByHostId(client.id);
         if (roomNumber !== null) {
             socket.to(String(roomNumber)).emit("play");
