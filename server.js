@@ -50,7 +50,7 @@ function getRoomIndexByNumber(number) {
     return -1;
 }
 
-function findRoomByClient(id) {
+function findRoomIndexByClient(id) {
     for (let i = 0; i < rooms.length; i++) {
         for(let j = 0; j < rooms[i].clients.length; j++) {
             if(rooms[i].clients[j].id === id) {
@@ -65,7 +65,13 @@ function findRoomByClient(id) {
 function allReady(roomNumber) {
     let index = getRoomIndexByNumber(roomNumber);
 
-    return rooms[index].clients.length === rooms[index].readyClients.length;
+    for(let i = 0; i < rooms[index].clients.length; i++) {
+        if(rooms[index].clients[i].ready === false) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 socket = io(app.listen(process.env.PORT || 8080, function () {
@@ -99,7 +105,7 @@ socket.on("connection", function (client) {
         if (index > -1) {
             // Join the room if it exists
             client.join(String(roomNumber));
-            rooms[index].clients.push({id: client.id, name: name});
+            rooms[index].clients.push({id: client.id, name: name, ready: false});
 
             socket.to(rooms[index].hostId).emit("client_join", name);
             console.log("Client " + name + " joined room " + roomNumber);
@@ -107,12 +113,20 @@ socket.on("connection", function (client) {
     });
 
     client.on("ready", function() {
-        let index = getRoomIndexByNumber(findRoomByClient(client.id));
+        let index = getRoomIndexByNumber(findRoomIndexByClient(client.id));
         if(index === -1) {
             return;
         }
-        rooms[index].readyClients.push(client.id);
-        if(allReady(findRoomByClient(client.id))) {
+        //rooms[index].readyClients.push(client.id);
+
+        for(let i = 0; i < rooms[index].clients.length; i++) {
+            if(rooms[index].clients[i].id === client.id) {
+                rooms[index].clients[i].ready = true;
+                break;
+            }
+        }
+
+        if(allReady(findRoomIndexByClient(client.id))) {
             socket.to(rooms[index].hostId).emit("all_ready"); 
         }
         //socket.to(rooms[index].hostId).emit("client_status", {clients: rooms[index].clients, readyClients: rooms[index].readyClients});
