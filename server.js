@@ -25,7 +25,6 @@ function initRoom(client) {
         roomNumber: roomNumber,
         hostId: client.id,
         clients: [],
-        readyClients: []
     });
 
     console.log("Creating room with host " + client.id + " and room number " + roomNumber);
@@ -151,6 +150,10 @@ socket.on("connection", function (client) {
     });
 
     client.on("registration_complete", function() {
+        let index = getRoomIndexByNumber(getRoomByHost(client.id));
+        if(index === -1 ) {
+            return;
+        }
         client.emit("clients", {clients: rooms[index].clients});
     });
     
