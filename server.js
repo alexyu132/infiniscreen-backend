@@ -77,7 +77,7 @@ function roomAllReady(roomNumber) {
 // Initialize socket.io
 
 socket = io(app.listen(process.env.PORT || 8080, function () {
-    console.log("Server running at port " + this.address().port);
+    console.log("Server running on port " + this.address().port);
 }));
 
 // Socket listeners
@@ -99,7 +99,6 @@ socket.on("connection", function (client) {
 
             console.log("Room " + roomNumber + "removed.");
         }
-
     });
 
     // CLIENT EVENTS
@@ -194,6 +193,7 @@ socket.on("connection", function (client) {
             
             socket.to(positionInfo.device_positions[i].id).emit("position", originX, originY, width, height);
         }
+
+        console.log("Received position info.");
     });
-    
 });
