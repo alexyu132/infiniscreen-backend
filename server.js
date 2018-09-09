@@ -151,7 +151,7 @@ socket.on("connection", function (client) {
     });
 
     client.on("registration_complete", function() {
-        socket.to(rooms[index].hostId).emit("clients", {clients: rooms[index].clients});
+        client.emit("clients", {clients: rooms[index].clients});
     });
     
 });
