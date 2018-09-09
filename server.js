@@ -188,9 +188,11 @@ socket.on("connection", function (client) {
             height = 1.0 / rows;
         
         for(let i = 0; i < positionInfo.device_positions.length; i++) {
+
+            if(positionInfo.device_positions[i].id === "Host") continue;
+
             let originX = positionInfo.device_positions[i].col * width,
                 originY = positionInfo.device_positions[i].row * height;
-            
             socket.to(positionInfo.device_positions[i].id).emit("position", originX, originY, width, height);
         }
 
