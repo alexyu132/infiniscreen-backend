@@ -181,22 +181,30 @@ socket.on("connection", function (client) {
         client.emit("clients", {clients: rooms[index].clients});
     });
 
-    client.on("positions", function(positionInfo) {
+    client.on("positions_url", function(positionInfo, url) {
         let rows = positionInfo.rows, 
             cols = positionInfo.cols,
             width = 1.0 / cols,
             height = 1.0 / rows;
         
-        for(let i = 0; i < positionInfo.device_positions.length; i++) {
-
-            if(positionInfo.device_positions[i].id === "Host") continue;
-
-            let originX = positionInfo.device_positions[i].col * width,
-                originY = positionInfo.device_positions[i].row * height;
-            socket.to(positionInfo.device_positions[i].id).emit("position", originX, originY, width, height);
-        }
-
         console.log("Received position info.");
         console.log(positionInfo);
+
+        ytdl.getInfo(url, function (err, info) {
+            let convertedUrl = info.formats[0].url;
+            
+            for(let i = 0; i < positionInfo.device_positions.length; i++) {
+
+                if(positionInfo.device_positions[i].id === "Host") continue;
+    
+                let originX = positionInfo.device_positions[i].col * width,
+                    originY = positionInfo.device_positions[i].row * height;
+                socket.to(positionInfo.device_positions[i].id).emit("positions_with_dl_url", originX, originY, width, height, convertedUrl);
+            }
+
+            client.emit("dl_url", convertedUrl);
+        });
+
+
     });
 });
