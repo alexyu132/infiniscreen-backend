@@ -129,7 +129,7 @@ socket.on("connection", function (client) {
             }
         }
 
-        if(roomAllReady(getRoomIndexByClientId(client.id))) {
+        if(roomAllReady(rooms[getRoomIndexByClientId(client.id)].roomNumber)) {
             console.log("Room " + rooms[index].roomNumber + " is all ready!");
             socket.to(rooms[index].hostId).emit("all_ready"); 
         }
