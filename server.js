@@ -32,7 +32,7 @@ function initRoom(client) {
     return roomNumber;
 }
 
-function getRoomByHost(host) {
+function getRoomNumberByHostId(host) {
     for (let i = 0; i < rooms.length; i++) {
         if (rooms[i].hostId === host) {
             return rooms[i].roomNumber;
@@ -41,7 +41,7 @@ function getRoomByHost(host) {
     return null;
 }
 
-function getRoomIndexByNumber(number) {
+function getRoomIndexByRoomNumber(number) {
     for (let i = 0; i < rooms.length; i++) {
         if (rooms[i].roomNumber == number) {
             return i;
@@ -50,7 +50,7 @@ function getRoomIndexByNumber(number) {
     return -1;
 }
 
-function findRoomIndexByClient(id) {
+function getRoomIndexByClientId(id) {
     for (let i = 0; i < rooms.length; i++) {
         for(let j = 0; j < rooms[i].clients.length; j++) {
             if(rooms[i].clients[j].id === id) {
@@ -62,8 +62,8 @@ function findRoomIndexByClient(id) {
     return -1;
 }
 
-function allReady(roomNumber) {
-    let index = getRoomIndexByNumber(roomNumber);
+function roomAllReady(roomNumber) {
+    let index = getRoomIndexByRoomNumber(roomNumber);
 
     for(let i = 0; i < rooms[index].clients.length; i++) {
         if(rooms[index].clients[i].ready === false) {
@@ -74,15 +74,19 @@ function allReady(roomNumber) {
     return true;
 }
 
+// Initialize socket.io
+
 socket = io(app.listen(process.env.PORT || 8080, function () {
     console.log("Server running at port " + this.address().port);
 }));
+
+// Socket listeners
 
 socket.on("connection", function (client) {
     console.log("Connection from id " + client.id);
 
     client.on("disconnect", function (client) {
-        let roomNumber = getRoomByHost(client.id);
+        let roomNumber = getRoomNumberByHostId(client.id);
 
         // If this user is a host, disconnect all the clients in the room
         if (roomNumber !== null) {
@@ -90,7 +94,7 @@ socket.on("connection", function (client) {
                 s.disconnect(true);
             });
 
-            let index = getRoomIndexByNumber(roomNumber);
+            let index = getRoomIndexByRoomNumber(roomNumber);
             rooms.splice(index, 1);
 
             console.log("Room " + roomNumber + "removed.");
@@ -101,7 +105,7 @@ socket.on("connection", function (client) {
     // CLIENT EVENTS
 
     client.on("client_join", function (roomNumber, name) {
-        let index = getRoomIndexByNumber(roomNumber);
+        let index = getRoomIndexByRoomNumber(roomNumber);
         if (index > -1) {
             // Join the room if it exists
             client.join(String(roomNumber));
@@ -113,23 +117,23 @@ socket.on("connection", function (client) {
     });
 
     client.on("ready", function() {
-        let index = getRoomIndexByNumber(findRoomIndexByClient(client.id));
+        let index = getRoomIndexByClientId(client.id);
         if(index === -1) {
             return;
         }
-        //rooms[index].readyClients.push(client.id);
 
         for(let i = 0; i < rooms[index].clients.length; i++) {
             if(rooms[index].clients[i].id === client.id) {
                 rooms[index].clients[i].ready = true;
+                console.log("Client " + clients[i].name + " is ready.");
                 break;
             }
         }
 
-        if(allReady(findRoomIndexByClient(client.id))) {
+        if(roomAllReady(getRoomIndexByClientId(client.id))) {
+            console.log("Room " + rooms[index].roomNumber + " is all ready!");
             socket.to(rooms[index].hostId).emit("all_ready"); 
         }
-        //socket.to(rooms[index].hostId).emit("client_status", {clients: rooms[index].clients, readyClients: rooms[index].readyClients});
     });
 
     // HOST EVENTS
@@ -141,30 +145,36 @@ socket.on("connection", function (client) {
     });
 
     client.on("pause", function (timestamp) {
-        let roomNumber = getRoomByHost(client.id);
+        let roomNumber = getRoomNumberByHostId(client.id);
         if (roomNumber !== null) {
             socket.to(String(roomNumber)).emit("pause", { "timestamp": timestamp });
         }
+
+        console.log("Pause requested for room " + roomNumber);
     });
 
     client.on("play", function () {
-        let roomNumber = getRoomByHost(client.id);
+        let roomNumber = getRoomNumberByHostId(client.id);
         if (roomNumber !== null) {
             socket.to(String(roomNumber)).emit("play");
         }
+
+        console.log("Play requested for room " + roomNumber);
     });
 
     client.on("video_url", function (url) {
-        let roomNumber = getRoomByHost(client.id);
+        let roomNumber = getRoomNumberByHostId(client.id);
         if (roomNumber !== null) {
             ytdl.getInfo(url, function (err, info) {
                 socket.to(String(roomNumber)).emit("video_url", { "url": info.formats[0].url });
             });
         }
+
+        console.log("Broadcasted a YT download link.");
     });
 
     client.on("registration_complete", function() {
-        let index = getRoomIndexByNumber(getRoomByHost(client.id));
+        let index = getRoomIndexByRoomNumber(getRoomNumberByHostId(client.id));
         if(index === -1 ) {
             return;
         }
