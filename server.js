@@ -195,5 +195,6 @@ socket.on("connection", function (client) {
         }
 
         console.log("Received position info.");
+        console.log(positionInfo);
     });
 });
