@@ -171,5 +171,19 @@ socket.on("connection", function (client) {
         console.log("Registration complete for host " + client.id);
         client.emit("clients", {clients: rooms[index].clients});
     });
+
+    client.on("positions", function(positionInfo) {
+        let rows = positionInfo.rows, 
+            cols = positionInfo.cols,
+            width = 1 / cols,
+            height = 1 / rows;
+        
+        for(let i = 0; i < positionInfo.device_positions.length; i++) {
+            let originX = positionInfo.device_positions[i].col * width,
+                originY = positionInfo.device_positions[i].row * height;
+            
+            socket.to(positionInfo.device_positions[i].id).emit("position", originX, originY, width, height);
+        }
+    });
     
 });
