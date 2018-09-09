@@ -34,8 +34,8 @@ function initRoom(client) {
 
 function getRoomByHost(host) {
     for (let i = 0; i < rooms.length; i++) {
-        if (rooms[i].hostId == host) {
-            return rooms[i];
+        if (rooms[i].hostId === host) {
+            return rooms[i].roomNumber;
         }
     }
     return null;
@@ -154,6 +154,7 @@ socket.on("connection", function (client) {
         if(index === -1 ) {
             return;
         }
+        console.log("Registration complete for host " + client.id);
         client.emit("clients", {clients: rooms[index].clients});
     });
     
